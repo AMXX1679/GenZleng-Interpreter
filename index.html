@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gen Z Interpreter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+
+        #editor {
+            width: 100%;
+            height: 200px;
+            font-family: monospace;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            margin-bottom: 10px;
+        }
+
+        #output {
+            width: 100%;
+            height: 100px;
+            font-family: monospace;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            overflow-y: scroll;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Gen Z Interpreter</h1>
+    <textarea id="editor" placeholder="Gib deinen Code hier ein..."></textarea><br>
+    <button id="runButton">Run Code</button>
+    <h2>Output</h2>
+    <div id="output"></div>
+
+    <script>
+        class GenZInterpreter {
+            constructor() {
+                this.variables = {};
+                this.functions = {};
+            }
+
+            interpret(code) {
+                const lines = code.split(/\r?\n/);
+                this.executeLines(lines, {});
+            }
+
+            executeLines(lines, localVars) {
+                for (let i = 0; i < lines.length; i++) {
+                    let line = lines[i].trim();
+                    if (line === '' || line.startsWith('//')) continue; // Kommentare oder leere Zeilen überspringen
+
+                    // Variablenzuweisung: set oder gimme
+                    if (line.startsWith('set ') || line.startsWith('gimme ')) {
+                        i = this.handleVariableAssignment(lines, i, localVars);
+                    }
+                    // Const-Zuweisung: safe
+                    else if (line.startsWith('safe ')) {
+                        i = this.handleConstAssignment(lines, i, localVars);
+                    }
+                    // Funktionsdefinition: make
+                    else if (line.startsWith('make ')) {
+                        i = this.handleFunctionDefinition(lines, i);
+                    }
+                    // Bedingungen: realTalk
+                    else if (line.startsWith('realTalk ')) {
+                        i = this.handleCondition(lines, i, localVars);
+                    }
+                    // Schleifen: grind
+                    else if (line.startsWith('grind ')) {
+                        i = this.handleLoop(lines, i, localVars);
+                    }
+                    // Funktionsaufruf oder Ausgabe: say oder Funktionsname
+                    else {
+                        if (line.startsWith('say(')) {
+                            this.handleSay(line, localVars);
+                        } else {
+                            this.handleFunctionCall(line, localVars);
+                        }
+                    }
+                }
+            }
+
+            handleVariableAssignment(lines, currentIndex, localVars) {
+                const line = lines[currentIndex].trim();
+                const match = line.match(/(set|gimme)\s+(\w+)\s*=\s*(.+)/);
+                if (match) {
+                    const varName = match[2];
+                    const expression = match[3];
+                    const value = this.evaluateExpression(expression, localVars);
+                    localVars[varName] = value;
+                    this.variables[varName] = value; // Globale Variable aktualisieren
+                } else {
+                    console.error("Syntaxfehler bei Variablenzuweisung: " + line);
+                }
+                return currentIndex;
+            }
+
+            handleConstAssignment(lines, currentIndex, localVars) {
+                const line = lines[currentIndex].trim();
+                const match = line.match(/safe\s+(\w+)\s*=\s*(.+)/);
+                if (match) {
+                    const constName = match[1];
+                    const expression = match[2];
+                    const value = this.evaluateExpression(expression, localVars);
+                    this.variables[constName] = value; // Const-Variable speichern
+                } else {
+                    console.error("Syntaxfehler bei Const-Zuweisung: " + line);
+                }
+                return currentIndex;
+            }
+
+            handleFunctionDefinition(lines, currentIndex) {
+                const line = lines[currentIndex].trim();
+                const match = line.match(/make\s+(\w+)\s*\(([^)]*)\)\s*\{/);
+                if (match) {
+                    const funcName = match[1];
+                    const paramsStr = match[2].trim();
+                    const params = paramsStr === '' ? [] : paramsStr.split(/\s*,\s*/);
+                    const body = [];
+                    let i = currentIndex + 1;
+                    let braceCount = 1;
+                    while (i < lines.length && braceCount > 0) {
+                        const currentLine = lines[i].trim();
+                        if (currentLine.includes('{')) braceCount++;
+                        if (currentLine.includes('}')) braceCount--;
+                        if (braceCount > 0) {
+                            body.push(currentLine);
+                        }
+                        i++;
+                    }
+                    this.functions[funcName] = { params, body };
+                    return i - 1;
+                } else {
+                    console.error("Syntaxfehler bei Funktionsdefinition: " + line);
+                    return currentIndex;
+                }
+            }
+
+            handleCondition(lines, currentIndex, localVars) {
+                const line = lines[currentIndex].trim();
+                const match = line.match(/realTalk\s*\((.+)\)\s*\{/);
+                if (match) {
+                    const condition = match[1];
+                    const conditionTrue = this.evaluateCondition(condition, localVars);
+
+                    const trueBranch = [];
+                    const falseBranch = [];
+                    let i = currentIndex + 1;
+                    let braceCount = 1;
+                    let elseEncountered = false;
+
+                    while (i < lines.length && braceCount > 0) {
+                        const currentLine = lines[i].trim();
+                        if (currentLine.includes('{')) braceCount++;
+                        if (currentLine.includes('}')) braceCount--;
+                        if (braceCount > 0) {
+                            if (currentLine.startsWith('else {')) {
+                                elseEncountered = true;
+                                i++;
+                                continue;
+                            }
+                            if (!elseEncountered) {
+                                trueBranch.push(currentLine);
+                            } else {
+                                falseBranch.push(currentLine);
+                            }
+                        }
+                        i++;
+                    }
+
+                    if (conditionTrue) {
+                        this.executeLines(trueBranch, localVars);
+                    } else {
+                        this.executeLines(falseBranch, localVars);
+                    }
+
+                    return i - 1;
+                } else {
+                    console.error("Syntaxfehler bei Bedingung: " + line);
+                    return currentIndex;
+                }
+            }
+
+            handleLoop(lines, currentIndex, localVars) {
+                const line = lines[currentIndex].trim();
+                const match = line.match(/grind\s*\(([^;]+);([^;]+);([^\)]+)\)\s*\{/);
+                if (match) {
+                    const init = match[1].trim();
+                    const condition = match[2].trim();
+                    const increment = match[3].trim();
+
+                    // Initialisierung
+                    this.handleVariableAssignment([`set ${init}`], 0, localVars);
+
+                    const loopBody = [];
+                    let i = currentIndex + 1;
+                    let braceCount = 1;
+
+                    while (i < lines.length && braceCount > 0) {
+                        const currentLine = lines[i].trim();
+                        if (currentLine.includes('{')) braceCount++;
+                        if (currentLine.includes('}')) braceCount--;
+                        if (braceCount > 0) {
+                            loopBody.push(currentLine);
+                        }
+                        i++;
+                    }
+
+                    // Schleifenbedingung interpretieren
+                    const conditionMatch = condition.match(/(\w+)\s*(<|>|==|!=|<=|>=)\s*(.+)/);
+                    if (conditionMatch) {
+                        const varName = conditionMatch[1];
+                        const operator = conditionMatch[2];
+                        const value = this.evaluateExpression(conditionMatch[3], localVars);
+
+                        while (this.compare(this.variables[varName], operator, value)) {
+                            this.executeLines(loopBody, localVars);
+                            // Inkrementierung
+                            this.handleVariableAssignment([`set ${increment.replace('++', ' += 1').replace('--', ' -= 1')}`], 0, localVars);
+                        }
+                    } else {
+                        console.error("Ungültige Schleifenbedingung: " + condition);
+                    }
+
+                    return i - 1;
+                } else {
+                    console.error("Syntaxfehler bei Schleife: " + line);
+                    return currentIndex;
+                }
+            }
+
+            handleSay(line, localVars) {
+                const match = line.match(/say\((.+)\)/);
+                if (match) {
+                    const expression = match[1].trim();
+                    const value = this.evaluateExpression(expression, localVars);
+                    console.log(value); // Hier könnte man den Output in die GUI schreiben
+                    this.displayOutput(value); // Ausgabe in der GUI
+                }
+            }
+
+            handleFunctionCall(line, localVars) {
+                if (this.functions[line]) {
+                    const func = this.functions[line];
+                    const localFuncVars = { ...localVars }; // Erstelle lokale Variablen für die Funktion
+                    this.executeLines(func.body, localFuncVars);
+                } else {
+                    console.error("Funktion nicht definiert: " + line);
+                }
+            }
+
+            evaluateExpression(expression, localVars) {
+                // Einfache Evaluierung, kann erweitert werden
+                const trimmedExpr = expression.trim();
+                if (localVars[trimmedExpr] !== undefined) {
+                    return localVars[trimmedExpr];
+                }
+                if (!isNaN(trimmedExpr)) {
+                    return Number(trimmedExpr);
+                }
+                return trimmedExpr;
+            }
+
+            evaluateCondition(condition, localVars) {
+                const match = condition.match(/(\w+)\s*(<|>|==|!=|<=|>=)\s*(.+)/);
+                if (match) {
+                    const varName = match[1];
+                    const operator = match[2];
+                    const value = this.evaluateExpression(match[3], localVars);
+                    return this.compare(this.variables[varName], operator, value);
+                }
+                return false;
+            }
+
+            compare(left, operator, right) {
+                switch (operator) {
+                    case '<': return left < right;
+                    case '>': return left > right;
+                    case '==': return left == right;
+                    case '!=': return left != right;
+                    case '<=': return left <= right;
+                    case '>=': return left >= right;
+                    default: return false;
+                }
+            }
+
+            displayOutput(output) {
+                const outputDiv = document.getElementById('output');
+                outputDiv.innerHTML += output + "<br>"; // Füge die Ausgabe zur GUI hinzu
+            }
+        }
+
+        const interpreter = new GenZInterpreter();
+
+        document.getElementById('runButton').addEventListener('click', () => {
+            const code = document.getElementById('editor').value;
+            interpreter.interpret(code);
+        });
+    </script>
+
+</body>
+
+</html>
