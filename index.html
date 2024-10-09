@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -52,7 +52,7 @@
 <body>
 
     <h1>Gen Z Interpreter</h1>
-    <textarea id="editor" placeholder="Gib deinen Code hier ein..."></textarea><br>
+    <textarea id="editor" placeholder="Enter your code here..."></textarea><br>
     <button id="runButton">Run Code</button>
     <h2>Output</h2>
     <div id="output"></div>
@@ -60,41 +60,43 @@
     <script>
         class GenZInterpreter {
             constructor() {
-                this.variables = {};
-                this.functions = {};
+                this.variables = {}; // Stores variable values
+                this.functions = {}; // Stores function definitions
             }
 
+            // Main method to interpret the Gen Z code
             interpret(code) {
                 const lines = code.split(/\r?\n/);
                 this.executeLines(lines, {});
             }
 
+            // Executes each line of the code
             executeLines(lines, localVars) {
                 for (let i = 0; i < lines.length; i++) {
                     let line = lines[i].trim();
-                    if (line === '' || line.startsWith('//')) continue; // Kommentare oder leere Zeilen überspringen
+                    if (line === '' || line.startsWith('//')) continue; // Skip empty lines or comments
 
-                    // Variablenzuweisung: set oder gimme
+                    // Handle variable assignment: set or gimme
                     if (line.startsWith('set ') || line.startsWith('gimme ')) {
                         i = this.handleVariableAssignment(lines, i, localVars);
                     }
-                    // Const-Zuweisung: safe
+                    // Handle constant assignment: safe
                     else if (line.startsWith('safe ')) {
                         i = this.handleConstAssignment(lines, i, localVars);
                     }
-                    // Funktionsdefinition: make
+                    // Handle function definition: make
                     else if (line.startsWith('make ')) {
                         i = this.handleFunctionDefinition(lines, i);
                     }
-                    // Bedingungen: realTalk
+                    // Handle conditional statements: realTalk
                     else if (line.startsWith('realTalk ')) {
                         i = this.handleCondition(lines, i, localVars);
                     }
-                    // Schleifen: grind
+                    // Handle loops: grind
                     else if (line.startsWith('grind ')) {
                         i = this.handleLoop(lines, i, localVars);
                     }
-                    // Funktionsaufruf oder Ausgabe: say oder Funktionsname
+                    // Handle function calls or output: say or function name
                     else {
                         if (line.startsWith('say(')) {
                             this.handleSay(line, localVars);
@@ -105,6 +107,7 @@
                 }
             }
 
+            // Handles variable assignments using set or gimme
             handleVariableAssignment(lines, currentIndex, localVars) {
                 const line = lines[currentIndex].trim();
                 const match = line.match(/(set|gimme)\s+(\w+)\s*=\s*(.+)/);
@@ -113,13 +116,14 @@
                     const expression = match[3];
                     const value = this.evaluateExpression(expression, localVars);
                     localVars[varName] = value;
-                    this.variables[varName] = value; // Globale Variable aktualisieren
+                    this.variables[varName] = value; // Update global variable
                 } else {
-                    console.error("Syntaxfehler bei Variablenzuweisung: " + line);
+                    console.error("Syntax error in variable assignment: " + line);
                 }
                 return currentIndex;
             }
 
+            // Handles constant assignments using safe
             handleConstAssignment(lines, currentIndex, localVars) {
                 const line = lines[currentIndex].trim();
                 const match = line.match(/safe\s+(\w+)\s*=\s*(.+)/);
@@ -127,13 +131,18 @@
                     const constName = match[1];
                     const expression = match[2];
                     const value = this.evaluateExpression(expression, localVars);
-                    this.variables[constName] = value; // Const-Variable speichern
+                    if (!this.variables.hasOwnProperty(constName)) {
+                        this.variables[constName] = value; // Store constant variable
+                    } else {
+                        console.error(`Constant variable ${constName} cannot be reassigned.`);
+                    }
                 } else {
-                    console.error("Syntaxfehler bei Const-Zuweisung: " + line);
+                    console.error("Syntax error in constant assignment: " + line);
                 }
                 return currentIndex;
             }
 
+            // Handles function definitions using make
             handleFunctionDefinition(lines, currentIndex) {
                 const line = lines[currentIndex].trim();
                 const match = line.match(/make\s+(\w+)\s*\(([^)]*)\)\s*\{/);
@@ -156,11 +165,12 @@
                     this.functions[funcName] = { params, body };
                     return i - 1;
                 } else {
-                    console.error("Syntaxfehler bei Funktionsdefinition: " + line);
+                    console.error("Syntax error in function definition: " + line);
                     return currentIndex;
                 }
             }
 
+            // Handles conditional statements using realTalk
             handleCondition(lines, currentIndex, localVars) {
                 const line = lines[currentIndex].trim();
                 const match = line.match(/realTalk\s*\((.+)\)\s*\{/);
@@ -201,11 +211,12 @@
 
                     return i - 1;
                 } else {
-                    console.error("Syntaxfehler bei Bedingung: " + line);
+                    console.error("Syntax error in condition: " + line);
                     return currentIndex;
                 }
             }
 
+            // Handles loops using grind
             handleLoop(lines, currentIndex, localVars) {
                 const line = lines[currentIndex].trim();
                 const match = line.match(/grind\s*\(([^;]+);([^;]+);([^\)]+)\)\s*\{/);
@@ -214,7 +225,7 @@
                     const condition = match[2].trim();
                     const increment = match[3].trim();
 
-                    // Initialisierung
+                    // Initialize loop variable
                     this.handleVariableAssignment([`set ${init}`], 0, localVars);
 
                     const loopBody = [];
@@ -231,7 +242,7 @@
                         i++;
                     }
 
-                    // Schleifenbedingung interpretieren
+                    // Evaluate loop condition
                     const conditionMatch = condition.match(/(\w+)\s*(<|>|==|!=|<=|>=)\s*(.+)/);
                     if (conditionMatch) {
                         const varName = conditionMatch[1];
@@ -240,42 +251,69 @@
 
                         while (this.compare(this.variables[varName], operator, value)) {
                             this.executeLines(loopBody, localVars);
-                            // Inkrementierung
+                            // Increment or decrement loop variable
                             this.handleVariableAssignment([`set ${increment.replace('++', ' += 1').replace('--', ' -= 1')}`], 0, localVars);
                         }
                     } else {
-                        console.error("Ungültige Schleifenbedingung: " + condition);
+                        console.error("Invalid loop condition: " + condition);
                     }
 
                     return i - 1;
                 } else {
-                    console.error("Syntaxfehler bei Schleife: " + line);
+                    console.error("Syntax error in loop: " + line);
                     return currentIndex;
                 }
             }
 
+            // Handles output using say
             handleSay(line, localVars) {
                 const match = line.match(/say\((.+)\)/);
                 if (match) {
                     const expression = match[1].trim();
                     const value = this.evaluateExpression(expression, localVars);
-                    console.log(value); // Hier könnte man den Output in die GUI schreiben
-                    this.displayOutput(value); // Ausgabe in der GUI
+                    console.log(value); // Output to console
+                    this.displayOutput(value); // Output to GUI
                 }
             }
 
+            // Handles function calls
             handleFunctionCall(line, localVars) {
-                if (this.functions[line]) {
-                    const func = this.functions[line];
-                    const localFuncVars = { ...localVars }; // Erstelle lokale Variablen für die Funktion
-                    this.executeLines(func.body, localFuncVars);
+                const match = line.match(/(\w+)\s*\(([^)]*)\)/);
+                if (match) {
+                    const funcName = match[1];
+                    const argsStr = match[2].trim();
+                    const args = argsStr === '' ? [] : argsStr.split(/\s*,\s*/);
+                    this.callFunction(funcName, args, localVars);
                 } else {
-                    console.error("Funktion nicht definiert: " + line);
+                    console.error("Undefined function or syntax error: " + line);
                 }
             }
 
+            // Calls a defined function with arguments
+            callFunction(funcName, args, callerVars) {
+                const func = this.functions[funcName];
+                if (!func) {
+                    console.error("Function not defined: " + funcName);
+                    return;
+                }
+
+                if (args.length !== func.params.length) {
+                    console.error(`Incorrect number of arguments for function ${funcName}`);
+                    return;
+                }
+
+                const localFuncVars = {};
+                for (let i = 0; i < args.length; i++) {
+                    const argValue = this.evaluateExpression(args[i], callerVars);
+                    localFuncVars[func.params[i]] = argValue;
+                }
+
+                this.executeLines(func.body, localFuncVars);
+            }
+
+            // Evaluates expressions
             evaluateExpression(expression, localVars) {
-                // Einfache Evaluierung, kann erweitert werden
+                // Simple evaluation: handles numbers, strings, and variables
                 const trimmedExpr = expression.trim();
                 if (localVars[trimmedExpr] !== undefined) {
                     return localVars[trimmedExpr];
@@ -286,6 +324,7 @@
                 return trimmedExpr;
             }
 
+            // Evaluates conditions for if statements and loops
             evaluateCondition(condition, localVars) {
                 const match = condition.match(/(\w+)\s*(<|>|==|!=|<=|>=)\s*(.+)/);
                 if (match) {
@@ -297,6 +336,7 @@
                 return false;
             }
 
+            // Compares two values based on the operator
             compare(left, operator, right) {
                 switch (operator) {
                     case '<': return left < right;
@@ -309,14 +349,16 @@
                 }
             }
 
+            // Displays output in the GUI
             displayOutput(output) {
                 const outputDiv = document.getElementById('output');
-                outputDiv.innerHTML += output + "<br>"; // Füge die Ausgabe zur GUI hinzu
+                outputDiv.innerHTML += output + "<br>"; // Append output to the output div
             }
         }
 
         const interpreter = new GenZInterpreter();
 
+        // Event listener for the Run Code button
         document.getElementById('runButton').addEventListener('click', () => {
             const code = document.getElementById('editor').value;
             interpreter.interpret(code);
