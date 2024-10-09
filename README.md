@@ -1,6 +1,4 @@
-Here’s a sample README file for your Gen Z Interpreter project:
 
-```markdown
 # Gen Z Interpreter
 
 ## Description
