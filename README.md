@@ -14,6 +14,19 @@ The Gen Z Interpreter is a lightweight programming language interpreter designed
 - **Loops**: Implement looping constructs with `grind`.
 - **Output**: Display messages using `say()`.
 
+| **Gen Z Command** | **Description**                      | **JavaScript Equivalent**      |
+|-------------------|--------------------------------------|---------------------------------|
+| `set`             | Assigns a value to a variable        | `let` or `var`                  |
+| `gimme`           | Assigns a value to a variable        | `let` or `var`                  |
+| `safe`            | Assigns an immutable constant value  | `const`                         |
+| `make`            | Defines a function                    | `function` or arrow functions   |
+| `realTalk`        | Initiates an `if` statement           | `if`                            |
+| `else`            | Defines the `else` block              | `else`                          |
+| `grind`           | Creates a loop                        | `for` or `while`                |
+| `say`             | Outputs a message                     | `console.log()`                 |
+| `class`           | (Planned) Defines a class             | `class`                         |
+
+
 ## Installation
 
 1. Clone the repository:
@@ -29,22 +42,6 @@ The Gen Z Interpreter is a lightweight programming language interpreter designed
 1. In the text area, write your code using the Gen Z syntax.
 2. Click the "Run Code" button to execute the code.
 3. The output will be displayed below the code editor.
-
-## Commands Reference
-
-| **Gen Z Command** | **Description**                      | **JavaScript Equivalent**      |
-|-------------------|--------------------------------------|---------------------------------|
-| `set`             | Assigns a value to a variable        | `let` or `var`                  |
-| `gimme`           | Assigns a value to a variable        | `let` or `var`                  |
-| `safe`            | Assigns an immutable constant value  | `const`                         |
-| `make`            | Defines a function                    | `function` or arrow functions   |
-| `realTalk`        | Initiates an `if` statement           | `if`                            |
-| `else`            | Defines the `else` block              | `else`                          |
-| `grind`           | Creates a loop                        | `for` or `while`                |
-| `say`             | Outputs a message                     | `console.log()`                 |
-| `class`           | (Planned) Defines a class             | `class`                         |
-
-
 
 ### Example Code
 
