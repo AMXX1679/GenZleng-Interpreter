@@ -12,6 +12,7 @@ The Gen Z Interpreter is a lightweight programming language interpreter designed
 - **Functions**: Create reusable blocks of code with `make`.
 - **Conditional Statements**: Use `realTalk` for if-else logic.
 - **Loops**: Implement looping constructs with `grind`.
+- **Classes**: Define and utilize classes using `class`.
 - **Output**: Display messages using `say()`.
 
 | **Gen Z Command** | **Description**                      | **JavaScript Equivalent**      |
