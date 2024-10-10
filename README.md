@@ -24,7 +24,7 @@ The Gen Z Interpreter is a lightweight programming language interpreter designed
 | `else`            | Defines the `else` block              | `else`                          |
 | `grind`           | Creates a loop                        | `for` or `while`                |
 | `say`             | Outputs a message                     | `console.log()`                 |
-| `class`           | (Planned) Defines a class             | `class`                         |
+| `class`           | Defines a class                        | `class`                         |
 
 
 ## Installation
