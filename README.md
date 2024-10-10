@@ -46,26 +46,51 @@ The Gen Z Interpreter is a lightweight programming language interpreter designed
 ### Example Code
 
 ```plaintext
-// Define a variable
-set x = 10
-safe y = 5
+// Define a constant
+safe pi = 3.14
+
+// Assign variables
+set age = 16
+gimme followers = 1200
+set money = 0
 
 // Define a function
-make greet(name) {
-    say("What's up, " + name + "!")
+make checkAge(whatAge) {
+    realTalk (whatAge < 18) {
+        say("Yo, you're still a baby.")
+    } else {
+        say("You're an adult now!")
+    }
 }
 
-// Conditional statement
-realTalk(x > y) {
-    say("X is greater than Y.")
-} else {
-    say("X is less than or equal to Y.")
+// Define a class
+class Person {
+    make constructor(name, age) {
+        safe name = name
+        safe age = age
+    }
+
+    make introduce() {
+        say("Hi, I'm " + name + " and I'm " + age + " years old.")
+    }
 }
+
+// Create an instance of the class
+set alice = new Person("Alice", 30)
+
+// Call a method on the instance
+alice.introduce()
 
 // Loop example
-grind (set i = 0; i < 5; i++) {
-    say("Count: " + i)
+grind (i = 0; i < followers; i++) {
+    set money = money + 10
+    set i = i + 1 // Increment i
 }
+
+// Output results
+checkAge(age)
+say("You got " + money + " bucks!")
+say("Value of pi is: " + pi)
 ```
 
 ## Contributing
